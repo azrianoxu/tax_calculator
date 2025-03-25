@@ -29,7 +29,7 @@
 ## 使用方法
 
 ### 启动方式
-直接在浏览器中打开`tools/tax_calculator_web.html`文件即可使用。
+直接在浏览器中打开`tax_calculator_web.html`文件即可使用。
 
 ### 参数设置说明
 
