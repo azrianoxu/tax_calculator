@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>税费计算器</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 20px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .input-section {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .result-section {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f0f7ff;
+        }
+        .group-box {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        .group-box h3 {
+            margin-top: 0;
+            color: #1a73e8;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .form-row label {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .form-row input {
+            flex: 2;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        .form-row input:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 20px;
+            font-family: "Microsoft YaHei", sans-serif;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0d62c9;
+        }
+        .result-box {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        .result-box:last-child {
+            border-bottom: none;
+        }
+        .result-label {
+            font-weight: normal;
+        }
+        .result-value {
+            font-weight: bold;
+            text-align: right;
+            font-size: 18px;
+            color: #1a73e8;
+        }
+        .calculation-process {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .calculation-process h3 {
+            color: #1a73e8;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .error {
+            color: #d32f2f;
+            background-color: #fdecea;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>税费计算器</h1>
+        
+        <div class="grid-container">
+            <!-- 参数输入部分 -->
+            <div class="input-section">
+                <div class="group-box">
+                    <h3>基本信息</h3>
+                    <div class="form-row">
+                        <label for="amount">开票金额:</label>
+                        <input type="number" id="amount" placeholder="请输入开票金额" value="101">
+                    </div>
+                    <div class="form-row">
+                        <label for="tax_paid">已缴纳个税金额:</label>
+                        <input type="number" id="tax_paid" placeholder="请输入本周期已缴纳个税金额" value="0">
+                    </div>
+                </div>
+                
+                <div class="group-box">
+                    <h3>个人所得税参数</h3>
+                    <div class="form-row">
+                        <label for="personal_tax_rate">个税阶梯费率(%):</label>
+                        <input type="number" id="personal_tax_rate" placeholder="请输入个税阶梯费率" value="0.5">
+                    </div>
+                </div>
+                
+                <div class="group-box">
+                    <h3>增值税参数</h3>
+                    <div class="form-row">
+                        <label for="vat_rate">增值税税率(%):</label>
+                        <input type="number" id="vat_rate" placeholder="请输入增值税税率" value="1">
+                    </div>
+                </div>
+                
+                <div class="group-box">
+                    <h3>城市建设税参数</h3>
+                    <div class="form-row">
+                        <label for="city_tax_rate">城建税率(%):</label>
+                        <input type="number" id="city_tax_rate" placeholder="请输入城建税率" value="5">
+                    </div>
+                    <div class="form-row">
+                        <label for="city_tax_discount">城建税优惠比例(%):</label>
+                        <input type="number" id="city_tax_discount" placeholder="请输入城建税优惠比例" value="50">
+                    </div>
+                </div>
+                
+                <div class="group-box">
+                    <h3>教育附加费参数</h3>
+                    <div class="form-row">
+                        <label for="edu_tax_rate">教育附加费率(%):</label>
+                        <input type="number" id="edu_tax_rate" placeholder="请输入教育附加费率" value="3">
+                    </div>
+                    <div class="form-row">
+                        <label for="edu_tax_discount">教育附加费优惠比例(%):</label>
+                        <input type="number" id="edu_tax_discount" placeholder="请输入教育附加费优惠比例" value="100">
+                    </div>
+                </div>
+                
+                <div class="group-box">
+                    <h3>地方教育附加费参数</h3>
+                    <div class="form-row">
+                        <label for="local_edu_tax_rate">地方教育附加费率(%):</label>
+                        <input type="number" id="local_edu_tax_rate" placeholder="请输入地方教育附加费率" value="2">
+                    </div>
+                    <div class="form-row">
+                        <label for="local_edu_tax_discount">地方教育附加费优惠比例(%):</label>
+                        <input type="number" id="local_edu_tax_discount" placeholder="请输入地方教育附加费优惠比例" value="100">
+                    </div>
+                </div>
+                
+                <div class="group-box">
+                    <h3>印花税参数</h3>
+                    <div class="form-row">
+                        <label for="stamp_tax_rate">印花税率(%):</label>
+                        <input type="number" id="stamp_tax_rate" placeholder="请输入印花税率" value="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label for="stamp_tax_discount">印花税优惠比例(%):</label>
+                        <input type="number" id="stamp_tax_discount" placeholder="请输入印花税优惠比例" value="100">
+                    </div>
+                </div>
+                
+                <div class="group-box">
+                    <h3>服务费参数</h3>
+                    <div class="form-row">
+                        <label for="service_fee_rate">服务费率(%):</label>
+                        <input type="number" id="service_fee_rate" placeholder="请输入服务费率" value="2">
+                    </div>
+                    <div class="form-row">
+                        <label for="personal_service_fee_ratio">个人承担比例(%):</label>
+                        <input type="number" id="personal_service_fee_ratio" placeholder="请输入个人承担比例" value="30">
+                    </div>
+                    <div class="form-row">
+                        <label for="company_service_fee_ratio">企业承担比例(%):</label>
+                        <input type="number" id="company_service_fee_ratio" placeholder="请输入企业承担比例" value="70">
+                    </div>
+                </div>
+                
+                <button id="calculate-btn">计算税费和服务费</button>
+                
+                <div id="error-message" class="error"></div>
+            </div>
+            
+            <!-- 结果显示部分 -->
+            <div class="result-section">
+                <div class="group-box">
+                    <h3>计算结果</h3>
+                    <div class="result-box">
+                        <span class="result-label">开票金额:</span>
+                        <span id="result-amount" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">增值税:</span>
+                        <span id="result-vat" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">城市建设税:</span>
+                        <span id="result-city-tax" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">教育附加费:</span>
+                        <span id="result-edu-tax" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">地方教育附加费:</span>
+                        <span id="result-local-edu-tax" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">印花税:</span>
+                        <span id="result-stamp-tax" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">附加税合计:</span>
+                        <span id="result-additional-tax" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">个人所得税:</span>
+                        <span id="result-personal-tax" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">税费合计:</span>
+                        <span id="result-total-tax" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">个人承担服务费:</span>
+                        <span id="result-personal-service-fee" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">企业承担服务费:</span>
+                        <span id="result-company-service-fee" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">服务费合计:</span>
+                        <span id="result-total-service-fee" class="result-value">0.00</span>
+                    </div>
+                    <div class="result-box">
+                        <span class="result-label">费用总计:</span>
+                        <span id="result-total" class="result-value">0.00</span>
+                    </div>
+                </div>
+                
+                <div class="calculation-process" id="calculation-process">
+                    <h3>计算过程详情</h3>
+                    <div id="process-content">
+                        请点击计算按钮查看详细计算过程
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取计算按钮并添加点击事件
+            const calculateBtn = document.getElementById('calculate-btn');
+            calculateBtn.addEventListener('click', calculateTax);
+        });
+        
+        // 对数值进行四舍五入，保留2位小数
+        function roundDecimal(value) {
+            return Math.round(value * 100) / 100;
+        }
+        
+        // 计算税费的主函数
+        function calculateTax() {
+            try {
+                // 清除错误信息
+                const errorElement = document.getElementById('error-message');
+                errorElement.style.display = 'none';
+                
+                // 获取输入值
+                const amount = parseFloat(document.getElementById('amount').value || 0);
+                const tax_paid = parseFloat(document.getElementById('tax_paid').value || 0);
+                const personal_tax_rate = parseFloat(document.getElementById('personal_tax_rate').value || 0) / 100;
+                const vat_rate = parseFloat(document.getElementById('vat_rate').value || 0) / 100;
+                const city_tax_rate = parseFloat(document.getElementById('city_tax_rate').value || 0) / 100;
+                const city_tax_discount = parseFloat(document.getElementById('city_tax_discount').value || 0) / 100;
+                const edu_tax_rate = parseFloat(document.getElementById('edu_tax_rate').value || 0) / 100;
+                const edu_tax_discount = parseFloat(document.getElementById('edu_tax_discount').value || 0) / 100;
+                const local_edu_tax_rate = parseFloat(document.getElementById('local_edu_tax_rate').value || 0) / 100;
+                const local_edu_tax_discount = parseFloat(document.getElementById('local_edu_tax_discount').value || 0) / 100;
+                const stamp_tax_rate = parseFloat(document.getElementById('stamp_tax_rate').value || 0) / 100;
+                const stamp_tax_discount = parseFloat(document.getElementById('stamp_tax_discount').value || 0) / 100;
+                const service_fee_rate = parseFloat(document.getElementById('service_fee_rate').value || 0) / 100;
+                const personal_service_fee_ratio = parseFloat(document.getElementById('personal_service_fee_ratio').value || 0) / 100;
+                const company_service_fee_ratio = parseFloat(document.getElementById('company_service_fee_ratio').value || 0) / 100;
+                
+                // 检查金额是否有效
+                if (amount <= 0) {
+                    showError("开票金额必须大于0");
+                    return;
+                }
+                
+                // 验证服务费比例之和是否为100%
+                if (Math.abs(personal_service_fee_ratio + company_service_fee_ratio - 1) > 0.0001) {
+                    showError("个人承担比例与企业承担比例之和必须为100%");
+                    return;
+                }
+                
+                // 计算增值税
+                const vat_before_round = amount / (1 + vat_rate) * vat_rate;
+                const vat = roundDecimal(vat_before_round);
+                
+                // 计算城市建设税
+                const city_tax_before_round = vat * city_tax_rate * (1 - city_tax_discount);
+                const city_tax = roundDecimal(city_tax_before_round);
+                
+                // 计算教育附加费
+                const edu_tax_before_round = vat * edu_tax_rate * (1 - edu_tax_discount);
+                const edu_tax = roundDecimal(edu_tax_before_round);
+                
+                // 计算地方教育附加费
+                const local_edu_tax_before_round = vat * local_edu_tax_rate * (1 - local_edu_tax_discount);
+                const local_edu_tax = roundDecimal(local_edu_tax_before_round);
+                
+                // 计算印花税
+                const stamp_tax_before_round = amount * stamp_tax_rate * (1 - stamp_tax_discount);
+                const stamp_tax = roundDecimal(stamp_tax_before_round);
+                
+                // 计算附加税合计
+                const additional_tax_before_round = city_tax + edu_tax + local_edu_tax;
+                const additional_tax_total = roundDecimal(additional_tax_before_round);
+                
+                // 计算个人所得税
+                // 公式：个税金额=(开票金额-增值税)*个税费率-本周期已缴纳个税金额
+                const taxable_income = roundDecimal(amount - vat);
+                const personal_tax_before_deduction = roundDecimal(taxable_income * personal_tax_rate);
+                const personal_tax_pre = Math.max(0, roundDecimal(personal_tax_before_deduction - tax_paid));
+                const personal_tax = roundDecimal(personal_tax_pre);
+                
+                // 税费合计
+                const tax_total = roundDecimal(vat + city_tax + edu_tax + local_edu_tax + stamp_tax + personal_tax);
+                
+                // 计算服务费
+                const personal_service_fee_before_round = amount * service_fee_rate * personal_service_fee_ratio;
+                const personal_service_fee = roundDecimal(personal_service_fee_before_round);
+                
+                const company_service_fee_before_round = amount * service_fee_rate * company_service_fee_ratio;
+                const company_service_fee = roundDecimal(company_service_fee_before_round);
+                
+                const total_service_fee = roundDecimal(personal_service_fee + company_service_fee);
+                
+                // 计算总费用
+                const total = roundDecimal(tax_total + total_service_fee);
+                
+                // 更新结果显示
+                document.getElementById('result-amount').textContent = amount.toFixed(2);
+                document.getElementById('result-vat').textContent = vat.toFixed(2);
+                document.getElementById('result-city-tax').textContent = city_tax.toFixed(2);
+                document.getElementById('result-edu-tax').textContent = edu_tax.toFixed(2);
+                document.getElementById('result-local-edu-tax').textContent = local_edu_tax.toFixed(2);
+                document.getElementById('result-stamp-tax').textContent = stamp_tax.toFixed(2);
+                document.getElementById('result-additional-tax').textContent = additional_tax_total.toFixed(2);
+                document.getElementById('result-personal-tax').textContent = personal_tax.toFixed(2);
+                document.getElementById('result-total-tax').textContent = tax_total.toFixed(2);
+                document.getElementById('result-personal-service-fee').textContent = personal_service_fee.toFixed(2);
+                document.getElementById('result-company-service-fee').textContent = company_service_fee.toFixed(2);
+                document.getElementById('result-total-service-fee').textContent = total_service_fee.toFixed(2);
+                document.getElementById('result-total').textContent = total.toFixed(2);
+                
+                // 生成详细计算过程HTML
+                generateCalculationProcess(
+                    amount, tax_paid, personal_tax_rate, vat_rate,
+                    city_tax_rate, city_tax_discount, edu_tax_rate, edu_tax_discount,
+                    local_edu_tax_rate, local_edu_tax_discount, stamp_tax_rate, stamp_tax_discount,
+                    vat, vat_before_round, city_tax, city_tax_before_round,
+                    edu_tax, edu_tax_before_round, local_edu_tax, local_edu_tax_before_round,
+                    stamp_tax, stamp_tax_before_round, additional_tax_total, additional_tax_before_round,
+                    taxable_income, personal_tax_before_deduction, personal_tax, tax_total,
+                    service_fee_rate, personal_service_fee_ratio, company_service_fee_ratio,
+                    personal_service_fee, company_service_fee, total_service_fee,
+                    total, personal_service_fee_before_round, company_service_fee_before_round
+                );
+                
+            } catch (error) {
+                showError("计算过程中发生错误: " + error.message);
+                console.error(error);
+            }
+        }
+        
+        // 显示错误信息
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        // 生成详细计算过程HTML
+        function generateCalculationProcess(amount, tax_paid, personal_tax_rate, vat_rate,
+                                          city_tax_rate, city_tax_discount, edu_tax_rate, edu_tax_discount,
+                                          local_edu_tax_rate, local_edu_tax_discount, stamp_tax_rate, stamp_tax_discount,
+                                          vat, vat_before_round, city_tax, city_tax_before_round,
+                                          edu_tax, edu_tax_before_round, local_edu_tax, local_edu_tax_before_round,
+                                          stamp_tax, stamp_tax_before_round, additional_tax_total, additional_tax_before_round,
+                                          taxable_income, personal_tax_before_deduction, personal_tax, tax_total,
+                                          service_fee_rate, personal_service_fee_ratio, company_service_fee_ratio,
+                                          personal_service_fee, company_service_fee, total_service_fee,
+                                          total, personal_service_fee_before_round, company_service_fee_before_round) {
+            
+            let html = "";
+            
+            // 基本信息
+            html += "<h3>基本信息：</h3>";
+            html += `<p>开票金额: <b>${amount.toFixed(2)}</b></p>`;
+            html += `<p>本周期已缴纳个税金额: <b>${tax_paid.toFixed(2)}</b></p>`;
+            
+            // 税率信息
+            html += "<h3>税率参数：</h3>";
+            html += `<p>个税阶梯费率: <b>${(personal_tax_rate*100).toFixed(2)}%</b></p>`;
+            html += `<p>增值税税率: <b>${(vat_rate*100).toFixed(2)}%</b></p>`;
+            html += `<p>城建税率: <b>${(city_tax_rate*100).toFixed(2)}%</b>, 优惠比例: <b>${(city_tax_discount*100).toFixed(2)}%</b></p>`;
+            html += `<p>教育附加费率: <b>${(edu_tax_rate*100).toFixed(2)}%</b>, 优惠比例: <b>${(edu_tax_discount*100).toFixed(2)}%</b></p>`;
+            html += `<p>地方教育附加费率: <b>${(local_edu_tax_rate*100).toFixed(2)}%</b>, 优惠比例: <b>${(local_edu_tax_discount*100).toFixed(2)}%</b></p>`;
+            html += `<p>印花税率: <b>${(stamp_tax_rate*100).toFixed(2)}%</b>, 优惠比例: <b>${(stamp_tax_discount*100).toFixed(2)}%</b></p>`;
+            
+            // 增值税计算
+            html += "<h3>1. 增值税计算：</h3>";
+            html += "<p>公式: 增值税 = {开票金额/(1+增值税率)}*增值税率</p>";
+            html += `<p>计算: ${amount.toFixed(2)} / (1 + ${vat_rate.toFixed(4)}) × ${vat_rate.toFixed(4)} = ${vat_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${vat.toFixed(2)}元</b></p>`;
+            
+            // 城市建设税计算
+            html += "<h3>2. 城市建设税计算：</h3>";
+            html += "<p>公式: 附加税 = (本次征收增值税金额*城市建设税率)*(1-优惠比例)</p>";
+            html += `<p>计算: (${vat.toFixed(2)} × ${city_tax_rate.toFixed(4)}) × (1 - ${city_tax_discount.toFixed(4)}) = ${city_tax_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${city_tax.toFixed(2)}元</b></p>`;
+            
+            // 教育附加费计算
+            html += "<h3>3. 教育附加费计算：</h3>";
+            html += "<p>公式: 教育附加费 = (本次征收增值税金额*教育费附加费率)*(1-优惠比例)</p>";
+            html += `<p>计算: (${vat.toFixed(2)} × ${edu_tax_rate.toFixed(4)}) × (1 - ${edu_tax_discount.toFixed(4)}) = ${edu_tax_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${edu_tax.toFixed(2)}元</b></p>`;
+            
+            // 地方教育附加费计算
+            html += "<h3>4. 地方教育附加费计算：</h3>";
+            html += "<p>公式: 地方教育附加费 = (本次征收增值税金额*地方教育费附加费率)*(1-优惠比例)</p>";
+            html += `<p>计算: (${vat.toFixed(2)} × ${local_edu_tax_rate.toFixed(4)}) × (1 - ${local_edu_tax_discount.toFixed(4)}) = ${local_edu_tax_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${local_edu_tax.toFixed(2)}元</b></p>`;
+            
+            // 印花税计算
+            html += "<h3>5. 印花税计算：</h3>";
+            html += "<p>公式: 技术服务印花税 = (应发金额*税率)*(1-优惠比例)</p>";
+            html += `<p>计算: (${amount.toFixed(2)} × ${stamp_tax_rate.toFixed(4)}) × (1 - ${stamp_tax_discount.toFixed(4)}) = ${stamp_tax_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${stamp_tax.toFixed(2)}元</b></p>`;
+            
+            // 附加税合计计算
+            html += "<h3>6. 附加税合计计算：</h3>";
+            html += "<p>公式: 附加税合计 = 城市建设税 + 教育附加费 + 地方教育附加费</p>";
+            html += `<p>计算: ${city_tax.toFixed(2)} + ${edu_tax.toFixed(2)} + ${local_edu_tax.toFixed(2)} = ${additional_tax_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${additional_tax_total.toFixed(2)}元</b></p>`;
+            
+            // 个人所得税计算
+            html += "<h3>7. 个人所得税计算：</h3>";
+            html += "<p><b>新公式：个税金额 = (开票金额-增值税)*个税费率-本周期已缴纳个税金额</b></p>";
+            html += `<p>步骤1: 计算应税所得 = 开票金额 - 增值税 = ${amount.toFixed(2)} - ${vat.toFixed(2)} = ${taxable_income.toFixed(2)}</p>`;
+            html += `<p>步骤2: 应税所得 × 个税阶梯费率 = ${taxable_income.toFixed(2)} × ${personal_tax_rate.toFixed(4)} = ${personal_tax_before_deduction.toFixed(4)}</p>`;
+            html += `<p>步骤3: 扣除已缴纳个税 = ${personal_tax_before_deduction.toFixed(4)} - ${tax_paid.toFixed(2)}</p>`;
+            
+            if (personal_tax_before_deduction - tax_paid < 0) {
+                html += `<p>由于计算结果为负数 (${(personal_tax_before_deduction - tax_paid).toFixed(4)} < 0)，个税金额调整为0</p>`;
+            }
+            
+            html += `<p>四舍五入后: <b>${personal_tax.toFixed(2)}元</b></p>`;
+            
+            // 税费合计计算
+            html += "<h3>8. 税费合计计算：</h3>";
+            html += "<p>公式: 税费合计 = 增值税 + 城市建设税 + 教育附加费 + 地方教育附加费 + 印花税 + 个人所得税</p>";
+            html += `<p>计算: ${vat.toFixed(2)} + ${city_tax.toFixed(2)} + ${edu_tax.toFixed(2)} + ${local_edu_tax.toFixed(2)} + ${stamp_tax.toFixed(2)} + ${personal_tax.toFixed(2)} = ${tax_total.toFixed(2)}</p>`;
+            html += `<p>最终税费合计: <b>${tax_total.toFixed(2)}元</b></p>`;
+            
+            // 服务费计算
+            html += "<h3>9. 服务费计算：</h3>";
+            html += "<p>服务费率: <b>" + (service_fee_rate*100).toFixed(2) + "%</b></p>";
+            html += "<p>个人承担比例: <b>" + (personal_service_fee_ratio*100).toFixed(2) + "%</b></p>";
+            html += "<p>企业承担比例: <b>" + (company_service_fee_ratio*100).toFixed(2) + "%</b></p>";
+            
+            html += "<h4>个人承担服务费计算：</h4>";
+            html += "<p>公式: 个人承担服务费 = 开票金额 × 服务费率 × 个人承担比例</p>";
+            html += `<p>计算: ${amount.toFixed(2)} × ${service_fee_rate.toFixed(4)} × ${personal_service_fee_ratio.toFixed(4)} = ${personal_service_fee_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${personal_service_fee.toFixed(2)}元</b></p>`;
+            
+            html += "<h4>企业承担服务费计算：</h4>";
+            html += "<p>公式: 企业承担服务费 = 开票金额 × 服务费率 × 企业承担比例</p>";
+            html += `<p>计算: ${amount.toFixed(2)} × ${service_fee_rate.toFixed(4)} × ${company_service_fee_ratio.toFixed(4)} = ${company_service_fee_before_round.toFixed(4)}</p>`;
+            html += `<p>四舍五入后: <b>${company_service_fee.toFixed(2)}元</b></p>`;
+            
+            html += "<h4>服务费合计：</h4>";
+            html += "<p>公式: 服务费合计 = 个人承担服务费 + 企业承担服务费</p>";
+            html += `<p>计算: ${personal_service_fee.toFixed(2)} + ${company_service_fee.toFixed(2)} = ${total_service_fee.toFixed(2)}</p>`;
+            
+            // 总费用计算
+            html += "<h3>10. 费用总计：</h3>";
+            html += "<p>公式: 费用总计 = 税费合计 + 服务费合计</p>";
+            html += `<p>计算: ${tax_total.toFixed(2)} + ${total_service_fee.toFixed(2)} = ${total.toFixed(2)}</p>`;
+            html += `<p>最终费用总计: <b>${total.toFixed(2)}元</b></p>`;
+            
+            // 更新计算过程内容
+            document.getElementById('process-content').innerHTML = html;
+        }
+    </script>
+</body>
+</html> 
