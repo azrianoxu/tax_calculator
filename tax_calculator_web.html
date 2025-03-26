@@ -293,6 +293,10 @@
                         <span class="result-label" style="color: red;">费用总计:</span>
                         <span id="result-total" class="result-value" style="color: red;">0.00</span>
                     </div>
+                    <div class="result-box">
+                        <span class="result-label">个人到账金额:</span>
+                        <span id="result-person-receive" class="result-value">0.00</span>
+                    </div>
                 </div>
                 
                 <div class="calculation-process" id="calculation-process">
@@ -399,6 +403,10 @@
                 
                 // 计算总费用
                 const total = roundDecimal(tax_total + total_service_fee);
+
+                // 计算个人到账金额
+                // 个人到账金额 = 开票金额 - 税费合计 - 个人承担服务费
+                const person_receive = roundDecimal(amount - total - personal_service_fee);
                 
                 // 更新结果显示
                 document.getElementById('result-amount').textContent = amount.toFixed(2);
@@ -414,6 +422,7 @@
                 document.getElementById('result-company-service-fee').textContent = company_service_fee.toFixed(2);
                 document.getElementById('result-total-service-fee').textContent = total_service_fee.toFixed(2);
                 document.getElementById('result-total').textContent = total.toFixed(2);
+                document.getElementById('result-person-receive').textContent = person_receive.toFixed(2);
                 
                 // 生成详细计算过程HTML
                 generateCalculationProcess(
@@ -426,7 +435,7 @@
                     taxable_income, personal_tax_before_deduction, personal_tax, tax_total,
                     service_fee_rate, personal_service_fee_ratio, company_service_fee_ratio,
                     personal_service_fee, company_service_fee, total_service_fee,
-                    total, personal_service_fee_before_round, company_service_fee_before_round
+                    total, personal_service_fee_before_round, company_service_fee_before_round, person_receive
                 );
                 
             } catch (error) {
@@ -452,7 +461,7 @@
                                           taxable_income, personal_tax_before_deduction, personal_tax, tax_total,
                                           service_fee_rate, personal_service_fee_ratio, company_service_fee_ratio,
                                           personal_service_fee, company_service_fee, total_service_fee,
-                                          total, personal_service_fee_before_round, company_service_fee_before_round) {
+                                          total, personal_service_fee_before_round, company_service_fee_before_round, person_receive) {
             
             let html = "";
             
@@ -550,6 +559,12 @@
             html += "<p>公式: 费用总计 = 税费合计 + 服务费合计</p>";
             html += `<p>计算: ${tax_total.toFixed(2)} + ${total_service_fee.toFixed(2)} = ${total.toFixed(2)}</p>`;
             html += `<p>最终费用总计: <b>${total.toFixed(2)}元</b></p>`;
+
+            // 个人到账金额计算
+            html += "<h3>11. 个人到账金额：</h3>";
+            html += "<p>公式: 个人到账金额 = 开票金额 - 税费合计 - 个人承担服务费</p>";
+            html += `<p>计算: ${amount.toFixed(2)} - ${total.toFixed(2)} - ${personal_service_fee.toFixed(2)} = ${person_receive.toFixed(2)}</p>`;
+            html += `<p>最终个人到账金额: <b>${person_receive.toFixed(2)}元</b></p>`;
             
             // 更新计算过程内容
             document.getElementById('process-content').innerHTML = html;
